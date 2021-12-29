@@ -42,7 +42,7 @@ def checkValidCols(board):
 
 
 class NeuralNetwork:
-    def __init__(self, w, layers=3, layerSizes = [42, 15, 7]):
+    def __init__(self, w, layers=3, layerSizes = [42, 42, 15, 7]):
         self.layers = layers
         self.layerSizes = layerSizes
         self.weights = []

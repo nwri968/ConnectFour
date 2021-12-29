@@ -1,5 +1,6 @@
 import numpy as np
 from MakeMoveNN import ratMove, dropPiece, NeuralNetwork
+from MakeMoveMM import MMmove
 from GamePlayfunctions import *
 
 def playermove(board):
@@ -7,7 +8,8 @@ def playermove(board):
     print(board)
     col = int(input('\nEnter column to play: '))
 
-    dropPiece(board, col)
+    dropPiece(board, col-1
+    )
 
 
 def main():
@@ -24,13 +26,13 @@ def main():
     player = 2
 
     while not checkWin(board) and not boardFull(board):
-        player = flipBoard(board, player)
+        board, player = flipBoard(board, player)
         playermove(board)
 
         if checkWin(board) or boardFull(board):
             break
-        player = flipBoard(board, player)
-        ratMove(board, AI)
+        board, player = flipBoard(board, player)
+        MMmove(board)
 
     if checkWin(board):
         if player == 1:

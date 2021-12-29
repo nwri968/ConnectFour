@@ -103,8 +103,6 @@ def flipBoard(board, player):
         player: The other player number
     '''
 
-    for i in range(6):
-        for j in range(7):
-            board[i][j] = board[i][j]*-1
+    board = board*-1
 
-    return (3 - player)
+    return board, (3 - player)

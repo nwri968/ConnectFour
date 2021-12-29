@@ -1,5 +1,5 @@
 import numpy as np
-from random import random
+from random import random, randint
 from random import seed
 from MakeMoveNN import NeuralNetwork, ratMove
 from GamePlayfunctions import *
@@ -24,12 +24,12 @@ def ratFight(rat1, rat2):
     r2 = NeuralNetwork(rat2)
 
     while not checkWin(board) and not boardFull(board):
-        player = flipBoard(board, player)
+        board, player = flipBoard(board, player)
         ratMove(board, r1)
 
         if checkWin(board) or boardFull(board):
             break
-        player = flipBoard(board, player)
+        board, player = flipBoard(board, player)
         ratMove(board, r2)
 
     if checkWin(board):
@@ -52,8 +52,8 @@ def topX(scores, X):
     return np.argpartition(scores, -X)[-X:]
 
 
-def mutate(rat):
-    return np.random.normal(rat, 0.1)
+def mutate(rat, factor=0.1):
+    return np.random.normal(rat, factor)
 
 
 def writeRat(rat):
@@ -67,6 +67,13 @@ def writeRat(rat):
     f.close()
 
 
+def readRat():
+    '''
+    Reads in the best rat
+    '''
+    return np.loadtxt('Top_Rat.txt')
+
+
 def trainNN():
     '''
     Plays the board game
@@ -76,19 +83,20 @@ def trainNN():
     scores = []
     epochs = 100
     # Create initial rat population
-    num_rats = 200
+    num_rats = 52
 
-    for n in range(num_rats):
-        rats.append(np.array([random() for i in range(735)]))
+    for _ in range(num_rats):
+        rats.append(np.array([random()-0.5 for i in range(2499)]))
         scores.append(0)
 
     # Loop through epochs
     for epoch in range(epochs):
+        print(epoch)
         
         # Loop through rat pairs
         for i in range(num_rats):
             for j in range(num_rats):
-                printProgressBar(i*num_rats+j, num_rats**2, prefix='Epoch {} of {}'.format(epoch, epochs))
+                #printProgressBar(i*num_rats+j, num_rats**2, prefix='Epoch {} of {}'.format(epoch, epochs))
                 if not i==j:
                     rat1 = rats[i]
                     rat2 = rats[j]
@@ -121,7 +129,15 @@ def trainNN():
         rats = new_rats.copy()
 
         # Crossover Events
-        # None for now
+        # We will do num_rats/4 crossovers of 20 numbers
+        for _ in range(int(num_rats/4)):
+            a = randint(0, 2479)
+
+            b = randint(0, num_rats-1)
+            c = randint(0, num_rats-1)
+            section1 = rats[b][a: a+19]
+            rats[b][a: a+19] = rats[c][a: a+19]
+            rats[c][a: a+19] = section1 
 
     # Loop through rat pairs
     for i in range(num_rats):
@@ -144,8 +160,36 @@ def trainNN():
 
     topRat = np.argmax(scores)
 
-    writeRat(rats[topRat])                   
+    writeRat(rats[topRat])
+
+
+def trainNNv2():
+
+    seed(152858796)
+
+    rat1 = readRat()
+    rat2 = mutate(rat1, factor = 0.2)
+
+    num_runs = 100000
+
+    for i in range(num_runs):
+        if (i%100 == 0):
+            printProgressBar(i, num_runs)
+
+        result = ratFight(rat1, rat2)
+
+        if result == 1 or result == 0:
+            rat2 = mutate(rat2, factor = 0.2*np.exp(-0.0000005*i))
+
+        else:
+            rat1 = np.copy(rat2)
+            rat2 = mutate(rat2, factor = 0.2*np.exp(-0.0000005*i))
+
+    writeRat(rat1)
+
+
+
 
 
 if __name__ == '__main__':
-    trainNN()
+    trainNNv2()
